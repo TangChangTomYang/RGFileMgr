@@ -74,4 +74,47 @@
     }
 }
 
+
+
++(void)moveFileHasSuffix:(NSString *)suffix  atPath:(NSString *)atPath toDirectory:(NSString *)toDirectory{
+    NSFileManager *fileMgr = [NSFileManager defaultManager];
+    
+    
+    BOOL isDirectory = NO;
+    BOOL isExists = [fileMgr fileExistsAtPath:atPath isDirectory:&isDirectory];
+    if (isExists == NO ) return ;
+    
+    
+    if(isDirectory == NO ){
+        if ([[atPath lowercaseString] hasSuffix:[suffix lowercaseString]]) {
+            NSString *toPath = [toDirectory stringByAppendingPathComponent:[atPath lastPathComponent]];
+            NSError *err = nil;
+            [fileMgr moveItemAtPath:atPath toPath:toPath error:&err];
+        }
+        return ;
+    }
+    
+    
+    //子路径文件和文件夹 (多级)
+    NSArray *subPathArr = [fileMgr subpathsAtPath:atPath];
+    
+    for (NSString *subPath in subPathArr) {
+        
+        if ([subPath hasSuffix:@"DS_Store"])continue;
+        
+        isDirectory = NO;
+        NSString *subFile = [atPath stringByAppendingPathComponent:subPath];
+        BOOL isExists = [fileMgr fileExistsAtPath:subFile isDirectory:&isDirectory];
+        if (isExists == YES && isDirectory == NO) {
+             if ([[subPath lowercaseString] hasSuffix:[suffix lowercaseString]]) {
+                 NSString *toPath = [toDirectory stringByAppendingPathComponent:[subFile lastPathComponent]];
+                 NSError *err = nil;
+                 [fileMgr moveItemAtPath:subFile toPath:toPath error:&err];
+             }
+        }
+        
+    }
+  
+}
+
 @end
